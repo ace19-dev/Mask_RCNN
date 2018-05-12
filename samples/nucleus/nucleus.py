@@ -101,11 +101,12 @@ VAL_IMAGE_IDS = [
 
 class NucleusConfig(Config):
     """Configuration for training on the nucleus segmentation dataset."""
+
     # Give the configuration a recognizable name
     NAME = "nucleus"
 
     # Adjust depending on your GPU memory
-    IMAGES_PER_GPU = 6
+    IMAGES_PER_GPU = 4
 
     # Number of classes (including background)
     NUM_CLASSES = 1 + 1  # Background + nucleus
@@ -163,6 +164,8 @@ class NucleusConfig(Config):
 
     # Max number of final detections per image
     DETECTION_MAX_INSTANCES = 400
+
+    LEARNING_RATE = 0.0001
 
 
 class NucleusInferenceConfig(NucleusConfig):
@@ -254,6 +257,7 @@ class NucleusDataset(utils.Dataset):
 
 def train(model, dataset_dir, subset):
     """Train the model."""
+
     # Training dataset.
     dataset_train = NucleusDataset()
     dataset_train.load_nucleus(dataset_dir, subset)
@@ -276,16 +280,17 @@ def train(model, dataset_dir, subset):
         iaa.GaussianBlur(sigma=(0.0, 5.0))
     ])
 
+    # ------------------------------------------------------------------
     # *** This training schedule is an example. Update to your needs ***
-
+    # ------------------------------------------------------------------
     # If starting from imagenet, train heads only for a bit
     # since they have random weights
-    print("Train network heads")
-    model.train(dataset_train, dataset_val,
-                learning_rate=config.LEARNING_RATE,
-                epochs=20,
-                augmentation=augmentation,
-                layers='heads')
+    # print("Train network heads")
+    # model.train(dataset_train, dataset_val,
+    #             learning_rate=config.LEARNING_RATE,
+    #             epochs=20,
+    #             augmentation=augmentation,
+    #             layers='heads')
 
     print("Train all layers")
     model.train(dataset_train, dataset_val,
@@ -411,13 +416,16 @@ if __name__ == '__main__':
     # Parse command line arguments
     parser = argparse.ArgumentParser(
         description='Mask R-CNN for nuclei counting and segmentation')
-    parser.add_argument("command",
+    parser.add_argument("--command",
+                        default="train",
                         metavar="<command>",
                         help="'train' or 'detect'")
     parser.add_argument('--dataset', required=False,
+                        default="/home/acemc19/dl_data/nucleus",
                         metavar="/path/to/dataset/",
                         help='Root directory of the dataset')
-    parser.add_argument('--weights', required=True,
+    parser.add_argument('--weights', required=False,
+                        default="coco",
                         metavar="/path/to/weights.h5",
                         help="Path to weights .h5 file or 'coco'")
     parser.add_argument('--logs', required=False,
@@ -425,6 +433,7 @@ if __name__ == '__main__':
                         metavar="/path/to/logs/",
                         help='Logs and checkpoints directory (default=logs/)')
     parser.add_argument('--subset', required=False,
+                        default="stage1_train",
                         metavar="Dataset sub-directory",
                         help="Subset of dataset to run prediction on")
     args = parser.parse_args()
