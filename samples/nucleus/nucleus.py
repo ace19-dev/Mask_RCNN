@@ -433,7 +433,7 @@ if __name__ == '__main__':
                         metavar="/path/to/logs/",
                         help='Logs and checkpoints directory (default=logs/)')
     parser.add_argument('--subset', required=False,
-                        default="stage1_train",
+                        default="train",
                         metavar="Dataset sub-directory",
                         help="Subset of dataset to run prediction on")
     args = parser.parse_args()
