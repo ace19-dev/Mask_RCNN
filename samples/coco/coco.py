@@ -78,7 +78,11 @@ class CocoConfig(Config):
 
     # We use a GPU with 12GB memory, which can fit two images.
     # Adjust down if you use a smaller GPU.
-    IMAGES_PER_GPU = 2
+    IMAGES_PER_GPU = 1
+
+    STEPS_PER_EPOCH = 200
+
+    LEARNING_RATE = 0.0001
 
     # Uncomment to train on 8 GPUs (default is 1)
     # GPU_COUNT = 2
@@ -407,13 +411,15 @@ if __name__ == '__main__':
                         metavar="<command>",
                         help="'train' or 'evaluate' on MS COCO")
     parser.add_argument('--dataset', required=False,
-                        metavar="/home/acemc19/dl_data/COCO/",
+                        default="/home/acemc19/dl_data/COCO",
+                        metavar="/path/to/coco/",
                         help='Directory of the MS-COCO dataset')
     parser.add_argument('--year', required=False,
                         default=DEFAULT_DATASET_YEAR,
                         metavar="<year>",
                         help='Year of the MS-COCO dataset (2014 or 2017) (default=2017)')
     parser.add_argument('--model', required=False,
+                        default="coco",
                         metavar="/path/to/weights.h5",
                         help="Path to weights .h5 file or 'coco'")
     parser.add_argument('--logs', required=False,
@@ -480,12 +486,13 @@ if __name__ == '__main__':
         # validation set, as as in the Mask RCNN paper.
         dataset_train = CocoDataset()
         dataset_train.load_coco(args.dataset, "train", year=args.year, auto_download=args.download)
-        dataset_train.load_coco(args.dataset, "valminusminival", year=args.year, auto_download=args.download)
+        # dataset_train.load_coco(args.dataset, "valminusminival", year=args.year, auto_download=args.download)
         dataset_train.prepare()
 
         # Validation dataset
         dataset_val = CocoDataset()
-        dataset_val.load_coco(args.dataset, "minival", year=args.year, auto_download=args.download)
+        # dataset_val.load_coco(args.dataset, "minival", year=args.year, auto_download=args.download)
+        dataset_train.load_coco(args.dataset, "val", year=args.year, auto_download=args.download)
         dataset_val.prepare()
 
         # Image Augmentation
@@ -496,21 +503,21 @@ if __name__ == '__main__':
         # *** This training schedule is an example. Update to your needs ***
         # ------------------------------------------------------------------
         # Training - Stage 1
-        print("Training network heads")
-        model.train(dataset_train, dataset_val,
-                    learning_rate=config.LEARNING_RATE,
-                    epochs=40,
-                    layers='heads',
-                    augmentation=augmentation)
-
-        # Training - Stage 2
-        # Finetune layers from ResNet stage 4 and up
-        print("Fine tune Resnet stage 4 and up")
-        model.train(dataset_train, dataset_val,
-                    learning_rate=config.LEARNING_RATE,
-                    epochs=120,
-                    layers='4+',
-                    augmentation=augmentation)
+        # print("Training network heads")
+        # model.train(dataset_train, dataset_val,
+        #             learning_rate=config.LEARNING_RATE,
+        #             epochs=40,
+        #             layers='heads',
+        #             augmentation=augmentation)
+        #
+        # # Training - Stage 2
+        # # Finetune layers from ResNet stage 4 and up
+        # print("Fine tune Resnet stage 4 and up")
+        # model.train(dataset_train, dataset_val,
+        #             learning_rate=config.LEARNING_RATE,
+        #             epochs=120,
+        #             layers='4+',
+        #             augmentation=augmentation)
 
         # Training - Stage 3
         # Fine tune all layers
