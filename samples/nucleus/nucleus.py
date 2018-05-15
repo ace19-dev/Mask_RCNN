@@ -397,8 +397,8 @@ def detect(model, dataset_dir, subset):
         visualize.display_instances(
             image, r['rois'], r['masks'], r['class_ids'],
             dataset.class_names, r['scores'],
-            # show_bbox=False,
-            show_mask=False,
+            show_bbox=False,
+            show_mask=True,
             title="Predictions")
         plt.savefig("{}/{}.png".format(submit_dir, dataset.image_info[image_id]["id"]))
 
@@ -421,8 +421,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Mask R-CNN for nuclei counting and segmentation')
     parser.add_argument("--command",
-                        # default="train",
-                        default="detect",
+                        default="train",
+                        # default="detect",
                         metavar="<command>",
                         help="'train' or 'detect'")
     parser.add_argument('--dataset', required=False,
@@ -430,8 +430,8 @@ if __name__ == '__main__':
                         metavar="/path/to/dataset/",
                         help='Root directory of the dataset')
     parser.add_argument('--weights', required=False,
-                        # default="coco",
-                        default="last",
+                        default="coco",
+                        # default="last",
                         metavar="/path/to/weights.h5",
                         help="Path to weights .h5 file or 'coco'")
     parser.add_argument('--logs', required=False,
@@ -439,8 +439,8 @@ if __name__ == '__main__':
                         metavar="/path/to/logs/",
                         help='Logs and checkpoints directory (default=logs/)')
     parser.add_argument('--subset', required=False,
-                        # default="train",
-                        default="stage1_test",
+                        default="train",
+                        # default="stage1_test",
                         metavar="Dataset sub-directory",
                         help="Subset of dataset to run prediction on")
     args = parser.parse_args()
