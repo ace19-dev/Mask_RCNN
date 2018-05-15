@@ -262,9 +262,14 @@ visualize.draw_boxes(
 
 
 
-################################
+#####################################################
 # A Proposal Classification
-################################
+# This stage takes the region proposals from the RPN
+#   and classifies them
+#
+# Run the classifier heads on proposals to generate
+#   class probabilities and bounding box regressions.
+#####################################################
 
 # Get input and output to classifier and mask heads.
 mrcnn = model.run_graph([image], [
