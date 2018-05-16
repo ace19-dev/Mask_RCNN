@@ -419,13 +419,23 @@ visualize.draw_boxes(
 
 
 
-#######################################
+##################################################################################
 # Generation Masks
-#######################################
+# This stage takes the detections (refined bounding boxes and class IDs)
+#   from the previous layer and runs the mask head to generate segmentation
+#   masks for every instance.
+##################################################################################
+#########################################################
+# a Mask Targets
+#   These are the training targets for the mask branch
+#########################################################
 limit = 8
 display_images(np.transpose(gt_mask[..., :limit], [2, 0, 1]), cmap="Blues")
 
 
+#########################################################
+# b Predicted Masks
+#########################################################
 # Get predictions of mask head
 mrcnn = model.run_graph([image], [
     ("detections", model.keras_model.get_layer("mrcnn_detection").output),
@@ -456,9 +466,11 @@ display_images(det_masks[:4] * 255, cmap="Blues", interpolation="none")
 
 
 
-#######################################
+####################################################################################
 # Visualize Activations
-#######################################
+#   In some cases it helps to look at the output from different layers and
+#   visualize them to catch issues and odd patterns.
+####################################################################################
 # Get activations of a few sample layers
 activations = model.run_graph([image], [
     ("input_image",        model.keras_model.get_layer("input_image").output),
