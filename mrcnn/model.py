@@ -1930,6 +1930,9 @@ class MaskRCNN():
         outputs = [KL.Concatenate(axis=1, name=n)(list(o))
                    for o, n in zip(outputs, output_names)]
 
+        # rpn_class_logits: [batch, anchors, 2]
+        # rpn_probs: [batch, anchors, 2]
+        # rpn_bbox: [batch, anchors, 4]
         rpn_class_logits, rpn_class, rpn_bbox = outputs
 
         # Generate proposals
