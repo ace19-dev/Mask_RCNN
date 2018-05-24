@@ -624,8 +624,7 @@ class DetectionTargetLayer(KE.Layer):
               coordinates.
     gt_masks: [batch, height, width, MAX_GT_INSTANCES] of boolean type
 
-    Returns: Target ROIs and corresponding class IDs, bounding box shifts,
-    and masks.
+    Returns: Target ROIs and corresponding class IDs, bounding box shifts, and masks.
     rois: [batch, TRAIN_ROIS_PER_IMAGE, (y1, x1, y2, x2)] in normalized
           coordinates
     target_class_ids: [batch, TRAIN_ROIS_PER_IMAGE]. Integer class IDs.
@@ -831,9 +830,9 @@ def rpn_graph(feature_map, anchors_per_location, anchor_stride):
                    every pixel in the feature map), or 2 (every other pixel).
 
     Returns:
-        rpn_logits: [batch, H, W, 2] Anchor classifier logits (before softmax)
-        rpn_probs: [batch, H, W, 2] Anchor classifier probabilities.
-        rpn_bbox: [batch, H, W, (dy, dx, log(dh), log(dw))] Deltas to be
+        rpn_logits: [batch, anchors, 2] Anchor classifier logits (before softmax)
+        rpn_probs: [batch, anchors, 2] Anchor classifier probabilities.
+        rpn_bbox: [batch, anchors, (dy, dx, log(dh), log(dw))] Deltas to be
                   applied to anchors.
     """
     # TODO: check if stride of 2 causes alignment issues if the featuremap is not even.
@@ -1940,6 +1939,14 @@ class MaskRCNN():
         # and zero padded.
         proposal_count = config.POST_NMS_ROIS_TRAINING if mode == "training"\
             else config.POST_NMS_ROIS_INFERENCE
+
+        # ProposalLayer
+        #   Returns:
+        #      Proposals in normalized coordinates [batch, rois, (y1, x1, y2, x2)]
+        # 1. Filtering is done based on anchor scores (tf.nn.top_k func)
+        # 2. Apply deltas to anchors to get refined anchors. (apply_box_deltas_graph func)
+        # 3. Clip to image boundaries. (clip_boxes_graph func)
+        # 4. Non-max suppression (tf.image.non_max_suppression func)
         rpn_rois = ProposalLayer(
             proposal_count=proposal_count,
             nms_threshold=config.RPN_NMS_THRESHOLD,
