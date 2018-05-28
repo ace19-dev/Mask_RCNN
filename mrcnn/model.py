@@ -1941,8 +1941,10 @@ class MaskRCNN():
             else config.POST_NMS_ROIS_INFERENCE
 
         # ProposalLayer
+        #   Selects a subset to pass as proposals to the second stage.
         #   Returns:
         #      Proposals in normalized coordinates [batch, rois, (y1, x1, y2, x2)]
+        #
         # 1. Filtering is done based on anchor scores (tf.nn.top_k func)
         # 2. Apply deltas to anchors to get refined anchors. (apply_box_deltas_graph func)
         # 3. Clip to image boundaries. (clip_boxes_graph func)
