@@ -374,7 +374,7 @@ class Dataset(object):
         """Load instance masks for the given image.
 
         Different datasets use different ways to store masks. Override this
-        method to load instance masks and return them in the form of am
+        method to load instance masks and return them in the form of an
         array of binary masks of shape [height, width, instances].
 
         Returns:
