@@ -549,6 +549,7 @@ def detection_targets_graph(proposals, gt_class_ids, gt_boxes, gt_masks, config)
                          config.ROI_POSITIVE_RATIO)
     positive_indices = tf.random_shuffle(positive_indices)[:positive_count]
     positive_count = tf.shape(positive_indices)[0]
+
     # Negative ROIs. Add enough to maintain positive:negative ratio.
     r = 1.0 / config.ROI_POSITIVE_RATIO
     negative_count = tf.cast(r * tf.cast(positive_count, tf.float32), tf.int32) - positive_count
@@ -1871,6 +1872,9 @@ class MaskRCNN():
             # Anchors in normalized coordinates
             input_anchors = KL.Input(shape=[None, 4], name="input_anchors")
 
+        ########################################################################
+        # Feature map
+        ########################################################################
         # Build the shared convolutional layers.
         # Bottom-up Layers
         # Returns a list of the last layers of each stage, 5 in total.
@@ -1889,6 +1893,7 @@ class MaskRCNN():
         P2 = KL.Add(name="fpn_p2add")([
             KL.UpSampling2D(size=(2, 2), name="fpn_p3upsampled")(P3),
             KL.Conv2D(256, (1, 1), name='fpn_c2p2')(C2)])
+
         # Attach 3x3 conv to all P layers to get the final feature maps.
         P2 = KL.Conv2D(256, (3, 3), padding="SAME", name="fpn_p2")(P2)
         P3 = KL.Conv2D(256, (3, 3), padding="SAME", name="fpn_p3")(P3)
@@ -1902,7 +1907,9 @@ class MaskRCNN():
         rpn_feature_maps = [P2, P3, P4, P5, P6]
         mrcnn_feature_maps = [P2, P3, P4, P5]
 
+        ########################################################################
         # Anchors
+        ########################################################################
         if mode == "training":
             anchors = self.get_anchors(config.IMAGE_SHAPE)
             # Duplicate across the batch dimension because Keras requires it
@@ -1930,8 +1937,8 @@ class MaskRCNN():
                    for o, n in zip(outputs, output_names)]
 
         # rpn_class_logits: [batch, anchors, 2]
-        # rpn_probs: [batch, anchors, 2]
-        # rpn_bbox: [batch, anchors, 4]
+        # rpn_class:        [batch, anchors, 2] - Box Scores.
+        # rpn_bbox:         [batch, anchors, 4]
         rpn_class_logits, rpn_class, rpn_bbox = outputs
 
         # Generate proposals

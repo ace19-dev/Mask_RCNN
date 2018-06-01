@@ -202,7 +202,13 @@ class Config(object):
             self.IMAGE_SHAPE = np.array([self.IMAGE_MAX_DIM, self.IMAGE_MAX_DIM, 3])
 
         # Image meta data length
-        # See compose_image_meta() for details
+        # ------------------------
+        # image_id = meta[:, 0]
+        # original_image_shape = meta[:, 1:4]
+        # image_shape = meta[:, 4:7]
+        # window = meta[:, 7:11]  # (y1, x1, y2, x2) window of image in in pixels
+        # scale = meta[:, 11]
+        # active_class_ids = meta[:, 12:]
         self.IMAGE_META_SIZE = 1 + 3 + 3 + 4 + 1 + self.NUM_CLASSES
 
     def display(self):
