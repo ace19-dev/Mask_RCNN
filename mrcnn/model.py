@@ -625,6 +625,7 @@ class DetectionTargetLayer(KE.Layer):
               coordinates.
     gt_masks: [batch, height, width, MAX_GT_INSTANCES] of boolean type
 
+
     Returns: Target ROIs and corresponding class IDs, bounding box shifts, and masks.
     rois: [batch, TRAIN_ROIS_PER_IMAGE, (y1, x1, y2, x2)] in normalized
           coordinates
@@ -896,14 +897,15 @@ def fpn_classifier_graph(rois, feature_maps, image_meta,
     """Builds the computation graph of the feature pyramid network classifier
     and regressor heads.
 
-    rois: [batch, num_rois, (y1, x1, y2, x2)] Proposal boxes in normalized
-          coordinates.
-    feature_maps: List of feature maps from diffent layers of the pyramid,
-                  [P2, P3, P4, P5]. Each has a different resolution.
-    - image_meta: [batch, (meta data)] Image details. See compose_image_meta()
-    pool_size: The width of the square feature map generated from ROI Pooling.
-    num_classes: number of classes, which determines the depth of the results
-    train_bn: Boolean. Train or freeze Batch Norm layres
+    Inputs:
+        rois: [batch, num_rois, (y1, x1, y2, x2)] Proposal boxes in normalized
+              coordinates.
+        feature_maps: List of feature maps from diffent layers of the pyramid,
+                      [P2, P3, P4, P5]. Each has a different resolution.
+        image_meta: [batch, (meta data)] Image details. See compose_image_meta()
+        pool_size: The width of the square feature map generated from ROI Pooling.
+        num_classes: number of classes, which determines the depth of the results
+        train_bn: Boolean. Train or freeze Batch Norm layres
 
     Returns:
         logits: [N, NUM_CLASSES] classifier logits (before softmax)
@@ -928,13 +930,17 @@ def fpn_classifier_graph(rois, feature_maps, image_meta,
     shared = KL.Lambda(lambda x: K.squeeze(K.squeeze(x, 3), 2),
                        name="pool_squeeze")(x)
 
+    ###################
     # Classifier head
+    ###################
     mrcnn_class_logits = KL.TimeDistributed(KL.Dense(num_classes),
                                             name='mrcnn_class_logits')(shared)
     mrcnn_probs = KL.TimeDistributed(KL.Activation("softmax"),
                                      name="mrcnn_class")(mrcnn_class_logits)
 
+    ###################
     # BBox head
+    ###################
     # [batch, boxes, num_classes * (dy, dx, log(dh), log(dw))]
     x = KL.TimeDistributed(KL.Dense(num_classes * 4, activation='linear'),
                            name='mrcnn_bbox_fc')(shared)
@@ -949,16 +955,18 @@ def build_fpn_mask_graph(rois, feature_maps, image_meta,
                          pool_size, num_classes, train_bn=True):
     """Builds the computation graph of the mask head of Feature Pyramid Network.
 
-    rois: [batch, num_rois, (y1, x1, y2, x2)] Proposal boxes in normalized
-          coordinates.
-    feature_maps: List of feature maps from diffent layers of the pyramid,
-                  [P2, P3, P4, P5]. Each has a different resolution.
-    image_meta: [batch, (meta data)] Image details. See compose_image_meta()
-    pool_size: The width of the square feature map generated from ROI Pooling.
-    num_classes: number of classes, which determines the depth of the results
-    train_bn: Boolean. Train or freeze Batch Norm layres
+    Inputs:
+        rois: [batch, num_rois, (y1, x1, y2, x2)] Proposal boxes in normalized
+              coordinates.
+        feature_maps: List of feature maps from diffent layers of the pyramid,
+                      [P2, P3, P4, P5]. Each has a different resolution.
+        image_meta: [batch, (meta data)] Image details. See compose_image_meta()
+        pool_size: The width of the square feature map generated from ROI Pooling.
+        num_classes: number of classes, which determines the depth of the results
+        train_bn: Boolean. Train or freeze Batch Norm layres
 
-    Returns: Masks [batch, roi_count, height, width, num_classes]
+    Returns:
+        Masks [batch, roi_count, height, width, num_classes]
     """
     # ROI Pooling
     # Shape: [batch, boxes, pool_height, pool_width, channels]
@@ -1937,7 +1945,7 @@ class MaskRCNN():
                    for o, n in zip(outputs, output_names)]
 
         # rpn_class_logits: [batch, anchors, 2]
-        # rpn_class:        [batch, anchors, 2] - Box Scores.
+        # rpn_class:        [batch, anchors, 2]
         # rpn_bbox:         [batch, anchors, 4]
         rpn_class_logits, rpn_class, rpn_bbox = outputs
 
@@ -1987,7 +1995,10 @@ class MaskRCNN():
                 DetectionTargetLayer(config, name="proposal_targets")([
                     target_rois, input_gt_class_ids, gt_boxes, input_gt_masks])
 
+
+            ##################
             # Network Heads
+            ##################
             # TODO: verify that this handles zero padded ROIs
             mrcnn_class_logits, mrcnn_class, mrcnn_bbox =\
                 fpn_classifier_graph(rois, mrcnn_feature_maps, input_image_meta,
