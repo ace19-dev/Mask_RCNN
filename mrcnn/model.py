@@ -1869,12 +1869,14 @@ class MaskRCNN():
                                     name="input_image_meta")
         if mode == "training":
             # RPN GT
+            # --------------------------
             input_rpn_match = KL.Input(
                 shape=[None, 1], name="input_rpn_match", dtype=tf.int32)
             input_rpn_bbox = KL.Input(
                 shape=[None, 4], name="input_rpn_bbox", dtype=tf.float32)
 
             # Detection GT (class IDs, bounding boxes, and masks)
+            # ---------------------------------------------------
             # 1. GT Class IDs (zero padded)
             input_gt_class_ids = KL.Input(
                 shape=[None], name="input_gt_class_ids", dtype=tf.int32)
@@ -1901,12 +1903,14 @@ class MaskRCNN():
             input_anchors = KL.Input(shape=[None, 4], name="input_anchors")
 
         ########################################################################
-        # Feature map
+        # Feature map extractor - FPN
+        #   build the shared convolutional layers.
+        #   generate a pyramid of feature
+        #   apply the RPN to generate ROIs
         ########################################################################
-        # Build the shared convolutional layers.
         # Bottom-up Layers
-        # Returns a list of the last layers of each stage, 5 in total.
-        # Don't create the thead (stage 5), so we pick the 4th item in the list.
+        #   Returns a list of the last layers of each stage, 5 in total.
+        #   Don't create the thead (stage 5), so we pick the 4th item in the list.
         if callable(config.BACKBONE):
             _, C2, C3, C4, C5 = config.BACKBONE(input_image, stage5=True,
                                                 train_bn=config.TRAIN_BN)
@@ -1925,7 +1929,9 @@ class MaskRCNN():
         P2 = KL.Add(name="fpn_p2add")([
             KL.UpSampling2D(size=(2, 2), name="fpn_p3upsampled")(P3),
             KL.Conv2D(config.TOP_DOWN_PYRAMID_SIZE, (1, 1), name='fpn_c2p2')(C2)])
+
         # Attach 3x3 conv to all P layers to get the final feature maps.
+        # To reduce the aliasing effect of upsampling.
         P2 = KL.Conv2D(config.TOP_DOWN_PYRAMID_SIZE, (3, 3), padding="SAME", name="fpn_p2")(P2)
         P3 = KL.Conv2D(config.TOP_DOWN_PYRAMID_SIZE, (3, 3), padding="SAME", name="fpn_p3")(P3)
         P4 = KL.Conv2D(config.TOP_DOWN_PYRAMID_SIZE, (3, 3), padding="SAME", name="fpn_p4")(P4)
