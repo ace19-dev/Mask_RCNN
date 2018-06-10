@@ -106,10 +106,10 @@ class NucleusConfig(Config):
     NAME = "nucleus"
 
     # NUMBER OF GPUs to use. For CPU training, use 1
-    GPU_COUNT = 2
+    GPU_COUNT = 1
 
     # Adjust depending on your GPU memory
-    IMAGES_PER_GPU = 6
+    IMAGES_PER_GPU = 3
 
     # Number of classes (including background)
     NUM_CLASSES = 1 + 1  # Background + nucleus
