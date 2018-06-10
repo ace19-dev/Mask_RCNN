@@ -596,7 +596,8 @@ def detection_targets_graph(proposals, gt_class_ids, gt_boxes, gt_masks, config)
         x2 = (x2 - gt_x1) / gt_w
         boxes = tf.concat([y1, x1, y2, x2], 1)
     box_ids = tf.range(0, tf.shape(roi_masks)[0])
-    masks = tf.image.crop_and_resize(tf.cast(roi_masks, tf.float32), boxes,
+    masks = tf.image.crop_and_resize(tf.cast(roi_masks, tf.float32),
+                                     boxes,
                                      box_ids,
                                      config.MASK_SHAPE)
     # Remove the extra dimension from masks.
