@@ -638,7 +638,7 @@ class DetectionTargetLayer(KE.Layer):
           coordinates
     target_class_ids: [batch, TRAIN_ROIS_PER_IMAGE]. Integer class IDs.
     target_deltas: [batch, TRAIN_ROIS_PER_IMAGE, NUM_CLASSES,
-                    (dy, dx, log(dh), log(dw), class_id)]
+                    (dy, dx, log(dh), log(dw))]
                    Class-specific bbox refinements.
     target_mask: [batch, TRAIN_ROIS_PER_IMAGE, height, width)
                  Masks cropped to bbox boundaries and resized to neural
@@ -905,7 +905,6 @@ def fpn_classifier_graph(rois, feature_maps, image_meta,
     """Builds the computation graph of the feature pyramid network classifier
     and regressor heads.
 
-<<<<<<< HEAD
     Inputs:
         rois: [batch, num_rois, (y1, x1, y2, x2)] Proposal boxes in normalized
               coordinates.
@@ -915,17 +914,7 @@ def fpn_classifier_graph(rois, feature_maps, image_meta,
         pool_size: The width of the square feature map generated from ROI Pooling.
         num_classes: number of classes, which determines the depth of the results
         train_bn: Boolean. Train or freeze Batch Norm layres
-=======
-    rois: [batch, num_rois, (y1, x1, y2, x2)] Proposal boxes in normalized
-          coordinates.
-    feature_maps: List of feature maps from diffent layers of the pyramid,
-                  [P2, P3, P4, P5]. Each has a different resolution.
-    - image_meta: [batch, (meta data)] Image details. See compose_image_meta()
-    pool_size: The width of the square feature map generated from ROI Pooling.
-    num_classes: number of classes, which determines the depth of the results
-    train_bn: Boolean. Train or freeze Batch Norm layres
-    fc_layers_size: Size of the 2 FC layers
->>>>>>> upstream/master
+        fc_layers_size: Size of the 2 FC layers
 
     Returns:
         logits: [N, NUM_CLASSES] classifier logits (before softmax)
@@ -1862,7 +1851,9 @@ class MaskRCNN():
                             "to avoid fractions when downscaling and upscaling."
                             "For example, use 256, 320, 384, 448, 512, ... etc. ")
 
+        ######################
         # Inputs
+        ######################
         input_image = KL.Input(
             shape=[None, None, 3], name="input_image")
         input_image_meta = KL.Input(shape=[config.IMAGE_META_SIZE],
@@ -1957,7 +1948,9 @@ class MaskRCNN():
         else:
             anchors = input_anchors
 
+        #######################
         # RPN Model
+        #######################
         rpn = build_rpn_model(config.RPN_ANCHOR_STRIDE,
                               len(config.RPN_ANCHOR_RATIOS), config.TOP_DOWN_PYRAMID_SIZE)
         # Loop through pyramid layers
@@ -1978,7 +1971,9 @@ class MaskRCNN():
         # rpn_bbox:         [batch, anchors, 4]
         rpn_class_logits, rpn_class, rpn_bbox = outputs
 
+        ##########################
         # Generate proposals
+        ##########################
         # Proposals are [batch, N, (y1, x1, y2, x2)] in normalized coordinates
         # and zero padded.
         proposal_count = config.POST_NMS_ROIS_TRAINING if mode == "training"\
@@ -2017,7 +2012,7 @@ class MaskRCNN():
                 target_rois = rpn_rois
 
             # Generate detection targets
-            # Subsamples proposals and generates target outputs for training
+            # Subsamples proposals and generates target outputs for training.
             # Note that proposal class IDs, gt_boxes, and gt_masks are zero
             # padded. Equally, returned rois and targets are zero padded.
             rois, target_class_ids, target_bbox, target_mask =\
